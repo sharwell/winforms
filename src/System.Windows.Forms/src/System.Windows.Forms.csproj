@@ -9,8 +9,6 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>    
     <NoWarn>;NU5105;1701;1702;1705;1591;3019;649;618;CA2002;CA1821;CA1018;CA2229</NoWarn>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <OmitResources>true</OmitResources>
-    <StringResourcesPath>Resources/Strings.resx</StringResourcesPath>
     <WarningsAsErrors />
   </PropertyGroup>
 
@@ -21,6 +19,13 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
   </PropertyGroup>
+  
+  <ItemGroup>
+    <EmbeddedResource Update="Resources\SR.resx">
+      <GenerateSource>true</GenerateSource>
+      <Namespace>System</Namespace>
+    </EmbeddedResource>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Accessibility" Version="4.6.0-alpha-27024-2" />

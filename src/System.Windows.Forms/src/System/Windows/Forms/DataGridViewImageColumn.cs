@@ -70,8 +70,8 @@ namespace System.Windows.Forms
         /// <include file='doc\DataGridViewImageColumn.uex' path='docs/doc[@for="DataGridViewImageColumn.DefaultCellStyle"]/*' />
         [
             Browsable(true),
-            SRCategory(SR.CatAppearance),
-            SRDescription(SR.DataGridView_ColumnDefaultCellStyleDescr)
+            SRCategory(nameof(SR.CatAppearance)),
+            SRDescription(nameof(SR.DataGridView_ColumnDefaultCellStyleDescr))
         ]
         public override DataGridViewCellStyle DefaultCellStyle
         {
@@ -89,8 +89,8 @@ namespace System.Windows.Forms
         [
             Browsable(true),
             DefaultValue(""),
-            SRCategory(SR.CatAppearance), 
-            SRDescription(SR.DataGridViewImageColumn_DescriptionDescr)
+            SRCategory(nameof(SR.CatAppearance)), 
+            SRDescription(nameof(SR.DataGridViewImageColumn_DescriptionDescr))
         ]
         public string Description
         {
@@ -150,8 +150,8 @@ namespace System.Windows.Forms
         /// <include file='doc\DataGridViewImageColumn.uex' path='docs/doc[@for="DataGridViewImageColumn.Image"]/*' />
         [
             DefaultValue(null),
-            SRCategory(SR.CatAppearance),
-            SRDescription(SR.DataGridViewImageColumn_ImageDescr)
+            SRCategory(nameof(SR.CatAppearance)),
+            SRDescription(nameof(SR.DataGridViewImageColumn_ImageDescr))
         ]
         public Image Image
         {
@@ -180,8 +180,8 @@ namespace System.Windows.Forms
         /// <include file='doc\DataGridViewImageColumn.uex' path='docs/doc[@for="DataGridViewImageColumn.ImageLayout"]/*' />
         [
             DefaultValue(DataGridViewImageCellLayout.Normal),
-            SRCategory(SR.CatAppearance),
-            SRDescription(SR.DataGridViewImageColumn_ImageLayoutDescr)
+            SRCategory(nameof(SR.CatAppearance)),
+            SRDescription(nameof(SR.DataGridViewImageColumn_ImageLayoutDescr))
         ]
         public DataGridViewImageCellLayout ImageLayout
         {

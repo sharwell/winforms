@@ -85,8 +85,8 @@ namespace System.Windows.Forms
         /// <include file='doc\DataGridViewRow.uex' path='docs/doc[@for="DataGridViewRow.ContextMenuStrip"]/*' />
         [
             DefaultValue(null),
-            SRCategory(SR.CatBehavior),
-            SRDescription(SR.DataGridView_RowContextMenuStripDescr)
+            SRCategory(nameof(SR.CatBehavior)),
+            SRDescription(nameof(SR.DataGridView_RowContextMenuStripDescr))
         ]
         public override ContextMenuStrip ContextMenuStrip
         {
@@ -128,8 +128,8 @@ namespace System.Windows.Forms
             Browsable(true),
             NotifyParentProperty(true),
             DesignerSerializationVisibility(DesignerSerializationVisibility.Content),
-            SRCategory(SR.CatAppearance),
-            SRDescription(SR.DataGridView_RowDefaultCellStyleDescr)
+            SRCategory(nameof(SR.CatAppearance)),
+            SRDescription(nameof(SR.DataGridView_RowDefaultCellStyleDescr))
         ]
         public override DataGridViewCellStyle DefaultCellStyle
         {
@@ -167,8 +167,8 @@ namespace System.Windows.Forms
         [
             DefaultValue(0),
             NotifyParentProperty(true),
-            SRCategory(SR.CatAppearance),
-            SRDescription(SR.DataGridView_RowDividerHeightDescr)
+            SRCategory(nameof(SR.CatAppearance)),
+            SRDescription(nameof(SR.DataGridView_RowDividerHeightDescr))
         ]
         public int DividerHeight
         {
@@ -190,8 +190,8 @@ namespace System.Windows.Forms
         [
             DefaultValue(""),
             NotifyParentProperty(true),
-            SRCategory(SR.CatAppearance),
-            SRDescription(SR.DataGridView_RowErrorTextDescr)
+            SRCategory(nameof(SR.CatAppearance)),
+            SRDescription(nameof(SR.DataGridView_RowErrorTextDescr))
         ]
         public string ErrorText
         {
@@ -280,8 +280,8 @@ namespace System.Windows.Forms
         [
             DefaultValue(22),
             NotifyParentProperty(true),
-            SRCategory(SR.CatAppearance),
-            SRDescription(SR.DataGridView_RowHeightDescr)
+            SRCategory(nameof(SR.CatAppearance)),
+            SRDescription(nameof(SR.DataGridView_RowHeightDescr))
         ]
         public int Height
         {
@@ -354,8 +354,8 @@ namespace System.Windows.Forms
             Browsable(true),
             DefaultValue(false),
             NotifyParentProperty(true),
-            SRCategory(SR.CatBehavior),
-            SRDescription(SR.DataGridView_RowReadOnlyDescr)
+            SRCategory(nameof(SR.CatBehavior)),
+            SRDescription(nameof(SR.DataGridView_RowReadOnlyDescr))
         ]
         public override bool ReadOnly
         {
@@ -376,8 +376,8 @@ namespace System.Windows.Forms
         /// <include file='doc\DataGridViewRow.uex' path='docs/doc[@for="DataGridViewRow.Resizable"]/*' />
         [
             NotifyParentProperty(true),
-            SRCategory(SR.CatBehavior),
-            SRDescription(SR.DataGridView_RowResizableDescr)
+            SRCategory(nameof(SR.CatBehavior)),
+            SRDescription(nameof(SR.DataGridView_RowResizableDescr))
         ]
         public override DataGridViewTriState Resizable
         {
