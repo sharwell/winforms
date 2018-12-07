@@ -514,7 +514,7 @@ namespace System.Windows.Forms.Layout {
                    // calling this will respect Control.DefaultPadding.
                    containerPadding = control.Padding;
                 }
-                else { // not likely to happen but…
+                else { // not likely to happen butâ€¦
                    containerPadding = CommonProperties.GetPadding(container, Padding.Empty);
                 }
 

@@ -244,7 +244,7 @@ namespace System.Experimental.Gdi
 
         /// <include file='doc\WindowsGraphics.uex' path='docs/doc[@for="WindowsGraphics.Dispose"]/*' />
         // Okay to suppress.
-        //"WindowsGraphics object does not own the Graphics object.  For instance in a control’s Paint event we pass the 
+        //"WindowsGraphics object does not own the Graphics object.  For instance in a controlâ€™s Paint event we pass the 
         //GraphicsContainer object to TextRenderer, which uses WindowsGraphics; 
         //if the Graphics object is disposed then further painting will be broken."
         [SuppressMessage("Microsoft.Usage", "CA2213:DisposableFieldsShouldBeDisposed")]
