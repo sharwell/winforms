@@ -2389,12 +2389,6 @@ namespace System.Windows.Forms {
                     }
                     base.WndProc(ref m);
                     break;
-                case NativeMethods.MCM_GETCALENDARGRIDINFO:
-                    var size = Marshal.ReadInt32(m.LParam, 0);
-                    var part = Marshal.ReadInt32(m.LParam, 4);
-                    var flags = Marshal.ReadInt32(m.LParam, 8);
-                    base.WndProc(ref m);
-                    break;
                 default:
                     base.WndProc(ref m);
                     break;

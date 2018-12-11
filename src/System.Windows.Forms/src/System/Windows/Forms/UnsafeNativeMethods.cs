@@ -608,6 +608,10 @@ namespace System.Windows.Forms {
 
         #region SendKeys SendInput functionality
 
+        [DllImport(ExternDll.User32, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool AttachThreadInput(int idAttach, int idAttachTo, [MarshalAs(UnmanagedType.Bool)] bool fAttach);
+
         [DllImport(ExternDll.User32, ExactSpelling = true, CharSet = CharSet.Auto)]
         [ResourceExposure(ResourceScope.None)]
         [return: MarshalAs(UnmanagedType.Bool)]

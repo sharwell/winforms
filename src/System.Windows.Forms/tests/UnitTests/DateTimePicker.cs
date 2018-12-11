@@ -2,20 +2,25 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Drawing;
-using System.Runtime.CompilerServices;
-using System.Runtime.ExceptionServices;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace System.Windows.Forms.Tests
 {
     public class DateTimePickerTests : ControlTestBase
     {
+        public DateTimePickerTests(ITestOutputHelper testOutputHelper)
+            : base(testOutputHelper)
+        {
+        }
+
         [Fact]
         public void DateTimePicker_Constructor()
         {
@@ -25,29 +30,73 @@ namespace System.Windows.Forms.Tests
             Assert.Equal(DateTimePickerFormat.Long, dtp.Format);
         }
 
-        [WinFormsFact]
-        public void ClickToNextMonth()
+        public static IEnumerable<object[]> Iterations
+            => Enumerable.Range(0, 1000).Select(x => new object[] { x });
+
+        [WinFormsTheory]
+        [MemberData(nameof(Iterations))]
+        public void ClickToNextMonth(int iteration)
         {
-            RunMonthCalendarTest(async control =>
+            Assert.True(iteration >= 0);
+            RunMonthCalendarTest(async (window, control) =>
             {
                 control.TodayDate = new DateTime(2018, 12, 8);
                 control.SetDate(new DateTime(2018, 12, 8));
 
-                await Task.Delay(TimeSpan.FromSeconds(20));
+                await WaitForIdleAsync();
 
-                var sa = new NativeMethods.SYSTEMTIMEARRAY();
-                var rc = UnsafeNativeMethods.SendMessage(new HandleRef(control, control.Handle), NativeMethods.MCM_GETMONTHRANGE, 0, ref sa);
-
-                rc = UnsafeNativeMethods.SendMessage(new HandleRef(control, control.Handle), NativeMethods.MCM_GETCALENDARBORDER, 0, 0);
-
-                rc = UnsafeNativeMethods.SendMessage(new HandleRef(control, control.Handle), NativeMethods.MCM_GETCALENDARCOUNT, 0, 0);
+                Assert.Equal(new DateTime(2018, 12, 1), control.GetDisplayRange(visible: true).Start);
 
                 // Find the position of the 'Next' button
                 var gridInfo = GetCalendarGridInfo(control);
                 var rect = Rectangle.FromLTRB(gridInfo.rc.left, gridInfo.rc.top, gridInfo.rc.right, gridInfo.rc.bottom);
 
-                Assert.Equal("", rect.ToString());
+                var centerOfRect = new Point(rect.Left, rect.Top) + new Size(rect.Width / 2, rect.Height / 2);
+                var centerOnScreen = control.PointToScreen(centerOfRect);
+                await MoveMouseAsync(window, centerOnScreen);
+
+                TaskCompletionSource<VoidResult> dateChanged = new TaskCompletionSource<VoidResult>(TaskCreationOptions.RunContinuationsAsynchronously);
+                control.DateChanged += (sender, e) => dateChanged.TrySetResult(default);
+
+                await InputSimulator.SendAsync(
+                    window,
+                    inputSimulator => inputSimulator.Mouse.LeftButtonClick());
+
+                await dateChanged.Task;
+
+                Assert.Equal(new DateTime(2019, 1, 1), control.GetDisplayRange(visible: true).Start);
             });
+        }
+
+        private async Task MoveMouseAsync(Form window, Point point)
+        {
+            TestOutputHelper.WriteLine($"Moving mouse to ({point.X}, {point.Y}).");
+            int horizontalResolution = UnsafeNativeMethods.GetSystemMetrics(NativeMethods.SM_CXSCREEN);
+            int verticalResolution = UnsafeNativeMethods.GetSystemMetrics(NativeMethods.SM_CYSCREEN);
+            var virtualPoint = new Point((int)Math.Round((65535.0 / horizontalResolution) * point.X), (int)Math.Round((65535.0 / verticalResolution) * point.Y));
+            TestOutputHelper.WriteLine($"Screen resolution of ({horizontalResolution}, {verticalResolution}) translates mouse to ({virtualPoint.X}, {virtualPoint.Y}).");
+
+            await InputSimulator.SendAsync(window, inputSimulator => inputSimulator.Mouse.MoveMouseTo(virtualPoint.X + 1, virtualPoint.Y + 1));
+            await WaitForIdleAsync();
+
+            // ⚠ The call to GetCursorPos is required for correct behavior.
+            var actualPoint = new NativeMethods.POINT();
+            if (!UnsafeNativeMethods.GetCursorPos(actualPoint))
+            {
+                throw Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error());
+            }
+
+            if (actualPoint.x != point.X || actualPoint.y != point.Y)
+            {
+                // Wait and try again
+                await Task.Delay(15);
+                if (!UnsafeNativeMethods.GetCursorPos(actualPoint))
+                {
+                    throw Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error());
+                }
+            }
+
+            Assert.Equal(point, new Point(actualPoint.x, actualPoint.y));
         }
 
         private static MCGRIDINFO GetCalendarGridInfo(MonthCalendar control)
@@ -180,12 +229,14 @@ namespace System.Windows.Forms.Tests
             public UIntPtr cchName;
         }
 
-        private void RunMonthCalendarTest(Func<MonthCalendar, Task> testDriverAsync)
+        private void RunMonthCalendarTest(Func<Form, MonthCalendar, Task> testDriverAsync)
         {
             RunForm(
                 () =>
                 {
                     var form = new Form();
+                    form.TopMost = true;
+
                     var control = new MonthCalendar();
                     control.Location = new Point(5, 5);
                     control.Name = "MyControl";
@@ -206,7 +257,7 @@ namespace System.Windows.Forms.Tests
                 testDriverAsync);
         }
 
-        private void RunForm<T>(Func<(Form dialog, T control)> showDialog, Func<T, Task> testDriverAsync)
+        private void RunForm<T>(Func<(Form dialog, T control)> showDialog, Func<Form, T, Task> testDriverAsync)
             where T : Control
         {
             Form dialog = null;
@@ -220,7 +271,7 @@ namespace System.Windows.Forms.Tests
                 await WaitForIdleAsync();
                 try
                 {
-                    await testDriverAsync(control);
+                    await testDriverAsync(dialog, control);
                 }
                 finally
                 {
@@ -229,7 +280,7 @@ namespace System.Windows.Forms.Tests
             });
 
             (dialog, control) = showDialog();
-            gate.SetResult(default);
+            dialog.Activated += (sender, e) => gate.TrySetResult(default);
             dialog.ShowDialog();
 
             test.Join();

@@ -6,17 +6,39 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace System.Windows.Forms.Tests
 {
-    public abstract class ControlTestBase : IAsyncLifetime
+    public abstract class ControlTestBase : IAsyncLifetime, IDisposable
     {
+        private const int SPI_GETCLIENTAREAANIMATION = 4162;
+        private const int SPI_SETCLIENTAREAANIMATION = 4163;
+        private const int SPIF_SENDCHANGE = 0x0002;
+
+        private bool clientAreaAnimation;
         private DenyExecutionSynchronizationContext _denyExecutionSynchronizationContext;
         private JoinableTaskCollection _joinableTaskCollection;
+
+        protected ControlTestBase(ITestOutputHelper testOutputHelper)
+        {
+            TestOutputHelper = testOutputHelper;
+
+            Application.EnableVisualStyles();
+
+            // Disable animations for maximum test performance
+            bool disabled = false;
+            Assert.True(UnsafeNativeMethods.SystemParametersInfo(SPI_GETCLIENTAREAANIMATION, 0, ref clientAreaAnimation, 0));
+            Assert.True(UnsafeNativeMethods.SystemParametersInfo(SPI_SETCLIENTAREAANIMATION, 0, ref disabled, SPIF_SENDCHANGE));
+        }
+
+        protected ITestOutputHelper TestOutputHelper { get; }
 
         protected JoinableTaskContext JoinableTaskContext { get; private set; }
 
         protected JoinableTaskFactory JoinableTaskFactory { get; private set; }
+
+        protected SendInput InputSimulator => new SendInput();
 
         public virtual Task InitializeAsync()
         {
@@ -47,17 +69,28 @@ namespace System.Windows.Forms.Tests
             }
         }
 
+        public virtual void Dispose()
+        {
+            Assert.True(UnsafeNativeMethods.SystemParametersInfo(SPI_SETCLIENTAREAANIMATION, 0, ref clientAreaAnimation, 0));
+        }
+
         protected async Task WaitForIdleAsync()
         {
             var idleCompletionSource = new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
             Application.Idle += HandleApplicationIdle;
 
-            // Queue an event to make sure we don't stall if the application was already idle
-            await JoinableTaskFactory.SwitchToMainThreadAsync();
-            await Task.Yield();
+            try
+            {
+                // Queue an event to make sure we don't stall if the application was already idle
+                await JoinableTaskFactory.SwitchToMainThreadAsync();
+                await Task.Yield();
 
-            await idleCompletionSource.Task;
-            Application.Idle -= HandleApplicationIdle;
+                await idleCompletionSource.Task;
+            }
+            finally
+            {
+                Application.Idle -= HandleApplicationIdle;
+            }
 
             void HandleApplicationIdle(object sender, EventArgs e)
             {
