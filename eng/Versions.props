@@ -9,6 +9,7 @@
   <PropertyGroup>
     <AccessibilityPackageVersion>4.6.0-alpha-27122-5</AccessibilityPackageVersion>
     <MicrosoftWin32RegistryPackageVersion>4.6.0-preview.18563.5</MicrosoftWin32RegistryPackageVersion>
+    <MicrosoftVisualStudioThreadingPackageVersion>15.8.192</MicrosoftVisualStudioThreadingPackageVersion>
     <SystemConfigurationConfigurationManagerPackageVersion>4.6.0-preview.18563.5</SystemConfigurationConfigurationManagerPackageVersion>
     <SystemDrawingCommonPackageVersion>4.6.0-preview.18563.5</SystemDrawingCommonPackageVersion>
     <MicrosoftWin32SystemEventsPackageVersion>4.6.0-preview.18563.5</MicrosoftWin32SystemEventsPackageVersion>
