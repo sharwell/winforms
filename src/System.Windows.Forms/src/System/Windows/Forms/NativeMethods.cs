@@ -1052,6 +1052,10 @@ namespace System.Windows.Forms {
         MCM_SETRANGE = (0x1000+18),
         MCM_SETMONTHDELTA = (0x1000+20),
         MCM_GETMAXTODAYWIDTH = (0x1000+21),
+        MCM_GETCALENDARCOUNT = (0x1000+23),
+        MCM_GETCALENDARGRIDINFO = (0x1000+24),
+        MCM_SETCALENDARBORDER = (0x1000+30),
+        MCM_GETCALENDARBORDER = (0x1000+31),
         MCHT_TITLE = 0x00010000,
         MCHT_CALENDAR = 0x00020000,
         MCHT_TODAYLINK = 0x00030000,
@@ -2257,23 +2261,9 @@ namespace System.Windows.Forms {
         }
 
         [StructLayout(LayoutKind.Sequential,CharSet=CharSet.Auto)]
-        internal class SYSTEMTIMEARRAY {
-            public short wYear1;
-            public short wMonth1;
-            public short wDayOfWeek1;
-            public short wDay1;
-            public short wHour1;
-            public short wMinute1;
-            public short wSecond1;
-            public short wMilliseconds1;
-            public short wYear2;
-            public short wMonth2;
-            public short wDayOfWeek2;
-            public short wDay2;
-            public short wHour2;
-            public short wMinute2;
-            public short wSecond2;
-            public short wMilliseconds2;
+        internal struct SYSTEMTIMEARRAY {
+            public SYSTEMTIME Time1;
+            public SYSTEMTIME Time2;
         }
 
         public delegate bool EnumChildrenCallback(IntPtr hwnd, IntPtr lParam);
@@ -3390,7 +3380,7 @@ namespace System.Windows.Forms {
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        public class SYSTEMTIME {
+        public struct SYSTEMTIME {
             public short wYear;
             public short wMonth;
             public short wDayOfWeek;
@@ -4501,15 +4491,15 @@ namespace System.Windows.Forms {
         public class NMSELCHANGE
         {
             public NMHDR        nmhdr;
-            public SYSTEMTIME   stSelStart = null;
-            public SYSTEMTIME   stSelEnd = null;
+            public SYSTEMTIME   stSelStart;
+            public SYSTEMTIME   stSelEnd;
         }
         
         [StructLayout(LayoutKind.Sequential, CharSet=CharSet.Auto)]
         public class NMDAYSTATE
         {
             public NMHDR        nmhdr;
-            public SYSTEMTIME   stStart = null;
+            public SYSTEMTIME   stStart;
             public int          cDayState = 0;
             public IntPtr       prgDayState;
         }
@@ -4754,7 +4744,7 @@ namespace System.Windows.Forms {
         {
             public NMHDR        nmhdr;
             public int          dwFlags = 0;
-            public SYSTEMTIME   st = null;
+            public SYSTEMTIME   st;
         }
 
         

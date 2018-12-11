@@ -403,7 +403,7 @@ namespace System.Windows.Forms {
                 // the information from win32 DateTimePicker is reliable only when ShowCheckBoxes is True
                 if (this.ShowCheckBox && IsHandleCreated) {
                     NativeMethods.SYSTEMTIME sys = new NativeMethods.SYSTEMTIME();
-                    int gdt = (int)UnsafeNativeMethods.SendMessage(new HandleRef(this, Handle), NativeMethods.DTM_GETSYSTEMTIME, 0, sys);
+                    int gdt = (int)UnsafeNativeMethods.SendMessage(new HandleRef(this, Handle), NativeMethods.DTM_GETSYSTEMTIME, 0, ref sys);
                     return gdt == NativeMethods.GDT_VALID;
                 } else {
                     return validTime;
@@ -416,12 +416,11 @@ namespace System.Windows.Forms {
                         if (value) {
                             int gdt = NativeMethods.GDT_VALID;
                             NativeMethods.SYSTEMTIME sys = DateTimePicker.DateTimeToSysTime(Value);
-                            UnsafeNativeMethods.SendMessage(new HandleRef(this, Handle), NativeMethods.DTM_SETSYSTEMTIME, gdt, sys);
+                            UnsafeNativeMethods.SendMessage(new HandleRef(this, Handle), NativeMethods.DTM_SETSYSTEMTIME, gdt, ref sys);
                         }
                         else {
                             int gdt = NativeMethods.GDT_NONE;
-                            NativeMethods.SYSTEMTIME sys = null;
-                            UnsafeNativeMethods.SendMessage(new HandleRef(this, Handle), NativeMethods.DTM_SETSYSTEMTIME, gdt, sys);
+                            UnsafeNativeMethods.SendMessage(new HandleRef(this, Handle), NativeMethods.DTM_SETSYSTEMTIME, gdt, IntPtr.Zero);
                         }
                     }
                     // this.validTime is used when the DateTimePicker receives date time change notification
@@ -1010,7 +1009,7 @@ namespace System.Windows.Forms {
                         */
                         int gdt = NativeMethods.GDT_VALID;
                         NativeMethods.SYSTEMTIME sys = DateTimePicker.DateTimeToSysTime(value);
-                        UnsafeNativeMethods.SendMessage(new HandleRef(this, Handle), NativeMethods.DTM_SETSYSTEMTIME, gdt, sys);
+                        UnsafeNativeMethods.SendMessage(new HandleRef(this, Handle), NativeMethods.DTM_SETSYSTEMTIME, gdt, ref sys);
                     }
 
                     if (valueChanged) {
@@ -1120,12 +1119,11 @@ namespace System.Windows.Forms {
                 */
                 int gdt = NativeMethods.GDT_VALID;
                 NativeMethods.SYSTEMTIME sys = DateTimePicker.DateTimeToSysTime(Value);
-                UnsafeNativeMethods.SendMessage(new HandleRef(this, Handle), NativeMethods.DTM_SETSYSTEMTIME, gdt, sys);
+                UnsafeNativeMethods.SendMessage(new HandleRef(this, Handle), NativeMethods.DTM_SETSYSTEMTIME, gdt, ref sys);
             }
             else if (!validTime) {
                 int gdt = NativeMethods.GDT_NONE;
-                NativeMethods.SYSTEMTIME sys = null;
-                UnsafeNativeMethods.SendMessage(new HandleRef(this, Handle), NativeMethods.DTM_SETSYSTEMTIME, gdt, sys);
+                UnsafeNativeMethods.SendMessage(new HandleRef(this, Handle), NativeMethods.DTM_SETSYSTEMTIME, gdt, IntPtr.Zero);
             }
 
             if (format == DateTimePickerFormat.Custom) {
@@ -1345,7 +1343,7 @@ namespace System.Windows.Forms {
             if (IsHandleCreated) {
                 int gdt = NativeMethods.GDT_VALID;
                 NativeMethods.SYSTEMTIME sys = DateTimePicker.DateTimeToSysTime(value);
-                UnsafeNativeMethods.SendMessage(new HandleRef(this, Handle), NativeMethods.DTM_SETSYSTEMTIME, gdt, sys);
+                UnsafeNativeMethods.SendMessage(new HandleRef(this, Handle), NativeMethods.DTM_SETSYSTEMTIME, gdt, ref sys);
             }
 
             // Updating Checked to false will set the control to "no date",
@@ -1405,24 +1403,10 @@ namespace System.Windows.Forms {
 
                 flags |= NativeMethods.GDTR_MIN | NativeMethods.GDTR_MAX;
                 NativeMethods.SYSTEMTIME sys = DateTimePicker.DateTimeToSysTime(min);
-                sa.wYear1 = sys.wYear;
-                sa.wMonth1 = sys.wMonth;
-                sa.wDayOfWeek1 = sys.wDayOfWeek;
-                sa.wDay1 = sys.wDay;
-                sa.wHour1 = sys.wHour;
-                sa.wMinute1 = sys.wMinute;
-                sa.wSecond1 = sys.wSecond;
-                sa.wMilliseconds1 = sys.wMilliseconds;
+                sa.Time1 = sys;
                 sys = DateTimePicker.DateTimeToSysTime(max);
-                sa.wYear2 = sys.wYear;
-                sa.wMonth2 = sys.wMonth;
-                sa.wDayOfWeek2 = sys.wDayOfWeek;
-                sa.wDay2 = sys.wDay;
-                sa.wHour2 = sys.wHour;
-                sa.wMinute2 = sys.wMinute;
-                sa.wSecond2 = sys.wSecond;
-                sa.wMilliseconds2 = sys.wMilliseconds;
-                UnsafeNativeMethods.SendMessage(new HandleRef(this, Handle), NativeMethods.DTM_SETRANGE, flags, sa);
+                sa.Time2 = sys;
+                UnsafeNativeMethods.SendMessage(new HandleRef(this, Handle), NativeMethods.DTM_SETRANGE, flags, ref sa);
             }
         }
 

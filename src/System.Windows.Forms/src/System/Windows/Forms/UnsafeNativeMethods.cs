@@ -1028,10 +1028,10 @@ namespace System.Windows.Forms {
         public static extern IntPtr SendMessage(HandleRef hWnd, int msg, int wParam, NativeMethods.MCHITTESTINFO lParam);
         [DllImport(ExternDll.User32, CharSet=CharSet.Auto)]
         [ResourceExposure(ResourceScope.None)]
-        public static extern IntPtr SendMessage(HandleRef hWnd, int msg, int wParam, NativeMethods.SYSTEMTIME lParam);
+        public static extern IntPtr SendMessage(HandleRef hWnd, int msg, int wParam, ref NativeMethods.SYSTEMTIME lParam);
         [DllImport(ExternDll.User32, CharSet=CharSet.Auto)]
         [ResourceExposure(ResourceScope.None)]
-        public static extern IntPtr SendMessage(HandleRef hWnd, int msg, int wParam, NativeMethods.SYSTEMTIMEARRAY lParam);
+        public static extern IntPtr SendMessage(HandleRef hWnd, int msg, int wParam, ref NativeMethods.SYSTEMTIMEARRAY lParam);
         [DllImport(ExternDll.User32, CharSet=CharSet.Auto)]
         [ResourceExposure(ResourceScope.None)]
         public static extern IntPtr SendMessage(HandleRef hWnd, int msg, int wParam, [In, Out] NativeMethods.LOGFONT lParam);        

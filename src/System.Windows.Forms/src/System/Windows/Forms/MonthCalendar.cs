@@ -18,11 +18,11 @@ namespace System.Windows.Forms {
     using System.Windows.Forms.Internal;
     using System.ComponentModel;
     using System.ComponentModel.Design;
-    using ArrayList = System.Collections.ArrayList;
 
     using System.Drawing;
     using Microsoft.Win32;
     using System.Windows.Forms.Layout;
+    using System.Collections.Generic;
 
     /// <include file='doc\MonthCalendar.uex' path='docs/doc[@for="MonthCalendar"]/*' />
     /// <devdoc>
@@ -154,9 +154,9 @@ namespace System.Windows.Forms {
         ///     Implementation is such that inserts are fast, removals are slow.
         /// </devdoc>
         /// <internalonly/>
-        private ArrayList   arrayOfDates = new ArrayList();
-        private ArrayList   annualArrayOfDates = new ArrayList(); // we have to maintain these lists too.
-        private ArrayList   monthlyArrayOfDates = new ArrayList();
+        private List<DateTime> arrayOfDates = new List<DateTime>();
+        private List<DateTime> annualArrayOfDates = new List<DateTime>(); // we have to maintain these lists too.
+        private List<DateTime> monthlyArrayOfDates = new List<DateTime>();
 
         // notifications
         private DateRangeEventHandler       onDateChanged;
@@ -1033,7 +1033,7 @@ namespace System.Windows.Forms {
                 if (todayDateSet) return todayDate;
                 if (IsHandleCreated) {
                     NativeMethods.SYSTEMTIME st = new NativeMethods.SYSTEMTIME();
-                    int res = (int)UnsafeNativeMethods.SendMessage(new HandleRef(this, Handle), NativeMethods.MCM_GETTODAY, 0, st);
+                    int res = (int)UnsafeNativeMethods.SendMessage(new HandleRef(this, Handle), NativeMethods.MCM_GETTODAY, 0, ref st);
                     Debug.Assert(res != 0, "MCM_GETTODAY failed");
                     return DateTimePicker.SysTimeToDateTime(st).Date;
                 }
@@ -1490,19 +1490,19 @@ namespace System.Windows.Forms {
         private SelectionRange GetMonthRange(int flag) {
             NativeMethods.SYSTEMTIMEARRAY sa = new NativeMethods.SYSTEMTIMEARRAY();
             SelectionRange range = new SelectionRange();
-            UnsafeNativeMethods.SendMessage(new HandleRef(this, Handle), NativeMethods.MCM_GETMONTHRANGE, flag, sa);
+            UnsafeNativeMethods.SendMessage(new HandleRef(this, Handle), NativeMethods.MCM_GETMONTHRANGE, flag, ref sa);
 
             NativeMethods.SYSTEMTIME st = new NativeMethods.SYSTEMTIME();
-            st.wYear = sa.wYear1;
-            st.wMonth = sa.wMonth1;
-            st.wDayOfWeek = sa.wDayOfWeek1;
-            st.wDay = sa.wDay1;
+            st.wYear = sa.Time1.wYear;
+            st.wMonth = sa.Time1.wMonth;
+            st.wDayOfWeek = sa.Time1.wDayOfWeek;
+            st.wDay = sa.Time1.wDay;
 
             range.Start = DateTimePicker.SysTimeToDateTime(st);
-            st.wYear = sa.wYear2;
-            st.wMonth = sa.wMonth2;
-            st.wDayOfWeek = sa.wDayOfWeek2;
-            st.wDay = sa.wDay2;
+            st.wYear = sa.Time2.wYear;
+            st.wMonth = sa.Time2.wMonth;
+            st.wDayOfWeek = sa.Time2.wDayOfWeek;
+            st.wDay = sa.Time2.wDay;
             range.End = DateTimePicker.SysTimeToDateTime(st);
 
             return range;
@@ -1602,7 +1602,7 @@ namespace System.Windows.Forms {
 
             if (todayDateSet) {
                 NativeMethods.SYSTEMTIME st = DateTimePicker.DateTimeToSysTime(todayDate);
-                UnsafeNativeMethods.SendMessage(new HandleRef(this, Handle), NativeMethods.MCM_SETTODAY, 0, st);
+                UnsafeNativeMethods.SendMessage(new HandleRef(this, Handle), NativeMethods.MCM_SETTODAY, 0, ref st);
             }
 
             SetControlColor(NativeMethods.MCSC_TEXT, ForeColor);
@@ -1970,17 +1970,17 @@ namespace System.Windows.Forms {
                 NativeMethods.SYSTEMTIMEARRAY sa = new NativeMethods.SYSTEMTIMEARRAY();
                 flag |= NativeMethods.GDTR_MIN | NativeMethods.GDTR_MAX;
                 NativeMethods.SYSTEMTIME sys = DateTimePicker.DateTimeToSysTime(minDate);
-                sa.wYear1 = sys.wYear;
-                sa.wMonth1 = sys.wMonth;
-                sa.wDayOfWeek1 = sys.wDayOfWeek;
-                sa.wDay1 = sys.wDay;
+                sa.Time1.wYear = sys.wYear;
+                sa.Time1.wMonth = sys.wMonth;
+                sa.Time1.wDayOfWeek = sys.wDayOfWeek;
+                sa.Time1.wDay = sys.wDay;
                 sys = DateTimePicker.DateTimeToSysTime(maxDate);
-                sa.wYear2 = sys.wYear;
-                sa.wMonth2 = sys.wMonth;
-                sa.wDayOfWeek2 = sys.wDayOfWeek;
-                sa.wDay2 = sys.wDay;
+                sa.Time2.wYear = sys.wYear;
+                sa.Time2.wMonth = sys.wMonth;
+                sa.Time2.wDayOfWeek = sys.wDayOfWeek;
+                sa.Time2.wDay = sys.wDay;
 
-                if ((int)UnsafeNativeMethods.SendMessage(new HandleRef(this, Handle), NativeMethods.MCM_SETRANGE, flag, sa) == 0)
+                if ((int)UnsafeNativeMethods.SendMessage(new HandleRef(this, Handle), NativeMethods.MCM_SETRANGE, flag, ref sa) == 0)
                     throw new InvalidOperationException(string.Format(SR.MonthCalendarRange, minDate.ToShortDateString(), maxDate.ToShortDateString()));
             }
         }
@@ -2107,16 +2107,16 @@ namespace System.Windows.Forms {
                 NativeMethods.SYSTEMTIMEARRAY sa = new NativeMethods.SYSTEMTIMEARRAY();
 
                 NativeMethods.SYSTEMTIME sys = DateTimePicker.DateTimeToSysTime(lower);
-                sa.wYear1 = sys.wYear;
-                sa.wMonth1 = sys.wMonth;
-                sa.wDayOfWeek1 = sys.wDayOfWeek;
-                sa.wDay1 = sys.wDay;
+                sa.Time1.wYear = sys.wYear;
+                sa.Time1.wMonth = sys.wMonth;
+                sa.Time1.wDayOfWeek = sys.wDayOfWeek;
+                sa.Time1.wDay = sys.wDay;
                 sys = DateTimePicker.DateTimeToSysTime(upper);
-                sa.wYear2 = sys.wYear;
-                sa.wMonth2 = sys.wMonth;
-                sa.wDayOfWeek2 = sys.wDayOfWeek;
-                sa.wDay2 = sys.wDay;
-                UnsafeNativeMethods.SendMessage(new HandleRef(this, Handle), NativeMethods.MCM_SETSELRANGE , 0, sa);
+                sa.Time2.wYear = sys.wYear;
+                sa.Time2.wMonth = sys.wMonth;
+                sa.Time2.wDayOfWeek = sys.wDayOfWeek;
+                sa.Time2.wDay = sys.wDay;
+                UnsafeNativeMethods.SendMessage(new HandleRef(this, Handle), NativeMethods.MCM_SETSELRANGE , 0, ref sa);
             }
 
             if (changed) {
@@ -2212,11 +2212,13 @@ namespace System.Windows.Forms {
         /// </devdoc>
         private void UpdateTodayDate() {
             if (IsHandleCreated) {
-                NativeMethods.SYSTEMTIME st = null;
                 if (todayDateSet) {
-                    st = DateTimePicker.DateTimeToSysTime(todayDate);
+                    NativeMethods.SYSTEMTIME st = DateTimePicker.DateTimeToSysTime(todayDate);
+                    UnsafeNativeMethods.SendMessage(new HandleRef(this, Handle), NativeMethods.MCM_SETTODAY, 0, ref st);
                 }
-                UnsafeNativeMethods.SendMessage(new HandleRef(this, Handle), NativeMethods.MCM_SETTODAY, 0, st);
+                else {
+                    UnsafeNativeMethods.SendMessage(new HandleRef(this, Handle), NativeMethods.MCM_SETTODAY, 0, IntPtr.Zero);
+                }
             }
         }
 
@@ -2385,6 +2387,12 @@ namespace System.Windows.Forms {
                     if (restrictUnmanagedCode == true && nativeWndProcCount > 0) {
                         throw new InvalidOperationException();
                     }
+                    base.WndProc(ref m);
+                    break;
+                case NativeMethods.MCM_GETCALENDARGRIDINFO:
+                    var size = Marshal.ReadInt32(m.LParam, 0);
+                    var part = Marshal.ReadInt32(m.LParam, 4);
+                    var flags = Marshal.ReadInt32(m.LParam, 8);
                     base.WndProc(ref m);
                     break;
                 default:
