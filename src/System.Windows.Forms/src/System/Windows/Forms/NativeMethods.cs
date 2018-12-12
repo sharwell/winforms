@@ -1086,6 +1086,67 @@ namespace System.Windows.Forms {
         MCS_NOTODAY = 0x0010,
         MSAA_MENU_SIG = (unchecked((int) 0xAA0DF00D));
 
+        /// <summary>
+        /// The entire calendar control, which may include up to 12 calendars.
+        /// </summary>
+        public const int MCGIP_CALENDARCONTROL = 0;
+
+        /// <summary>
+        /// The next button.
+        /// </summary>
+        public const int MCGIP_NEXT = 1;
+
+        /// <summary>
+        /// The previous button.
+        /// </summary>
+        public const int MCGIP_PREV = 2;
+
+        /// <summary>
+        /// The footer.
+        /// </summary>
+        public const int MCGIP_FOOTER = 3;
+
+        /// <summary>
+        /// One specific calendar. Used with <see cref="MCGRIDINFO.iCalendar"/> and <see cref="MCGRIDINFO.pszName"/>.
+        /// </summary>
+        public const int MCGIP_CALENDAR = 4;
+
+        /// <summary>
+        /// Calendar header. Used with <see cref="MCGRIDINFO.iCalendar"/> and <see cref="MCGRIDINFO.pszName"/>.
+        /// </summary>
+        public const int MCGIP_CALENDARHEADER = 5;
+
+        /// <summary>
+        /// Calendar body. Used with <see cref="MCGRIDINFO.iCalendar"/>.
+        /// </summary>
+        public const int MCGIP_CALENDARBODY = 6;
+
+        /// <summary>
+        /// A given calendar row. Used with <see cref="MCGRIDINFO.iCalendar"/> and <see cref="MCGRIDINFO.iRow"/>.
+        /// </summary>
+        public const int MCGIP_CALENDARROW = 7;
+
+        /// <summary>
+        /// A given calendar cell. Used with <see cref="MCGRIDINFO.iCalendar"/>, <see cref="MCGRIDINFO.iRow"/>,
+        /// <see cref="MCGRIDINFO.iCol"/>, <see cref="MCGRIDINFO.bSelected"/>, and <see cref="MCGRIDINFO.pszName"/>.
+        /// </summary>
+        public const int MCGIP_CALENDARCELL = 8;
+
+        /// <summary>
+        /// <see cref="MCGRIDINFO.stStart"/> and <see cref="MCGRIDINFO.stEnd"/>.
+        /// </summary>
+        public const int MCGIF_DATE = 0x0001;
+
+        /// <summary>
+        /// <see cref="MCGRIDINFO.rc"/>.
+        /// </summary>
+        public const int MCGIF_RECT = 0x0002;
+
+        /// <summary>
+        /// <see cref="MCGRIDINFO.pszName"/>.
+        /// </summary>
+        public const int MCGIF_NAME = 0x0004;
+
         public const int NIM_ADD = 0x00000000,
         NIM_MODIFY = 0x00000001,
         NIM_DELETE = 0x00000002,
@@ -4486,7 +4547,47 @@ namespace System.Windows.Forms {
             public short st_wSecond = 0;
             public short st_wMilliseconds = 0;
         }
-        
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct MCGRIDINFO
+        {
+            /// <summary>
+            /// Size of this structure, in bytes.
+            /// </summary>
+            public int cbSize;
+
+            /// <summary>
+            /// The part of the calendar control for which information is being requested.
+            /// </summary>
+            public uint dwPart;
+
+            /// <summary>
+            /// Indicates what information is to be filled in.
+            /// </summary>
+            public uint dwFlags;
+
+            /// <summary>
+            /// If <see cref="dwPart"/> is <see cref="MCGIP_CALENDAR"/>, <see cref="MCGIP_CALENDARHEADER"/>,
+            /// <see cref="MCGIP_CALENDARBODY"/>, <see cref="MCGIP_CALENDARROW"/>, or <see cref="MCGIP_CALENDARCELL"/>,
+            /// this member specifies the index of the calendar for which to retrieve information. For those parts, this
+            /// must be a valid value even if there is only one calendar that is currently in the control.
+            /// </summary>
+            public int iCalendar;
+
+            /// <summary>
+            /// If <see cref="dwPart"/> is <see cref="MCGIP_CALENDARROW"/>, specifies the row for which to return
+            /// information.
+            /// </summary>
+            public int iRow;
+            public int iCol;
+            public int bSelected;
+            public SYSTEMTIME stStart;
+            public SYSTEMTIME stEnd;
+            public RECT rc;
+            public IntPtr pszName;
+            public UIntPtr cchName;
+        }
+
         [StructLayout(LayoutKind.Sequential, CharSet=CharSet.Auto)]
         public class NMSELCHANGE
         {

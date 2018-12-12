@@ -1030,6 +1030,9 @@ namespace System.Windows.Forms {
         [DllImport(ExternDll.User32, CharSet=CharSet.Auto)]
         [ResourceExposure(ResourceScope.None)]
         public static extern IntPtr SendMessage(HandleRef hWnd, int msg, int wParam, NativeMethods.MCHITTESTINFO lParam);
+        [DllImport(ExternDll.User32, CharSet = CharSet.Unicode)]
+        [ResourceExposure(ResourceScope.None)]
+        public static extern IntPtr SendMessage(HandleRef hWnd, int msg, int wParam, ref NativeMethods.MCGRIDINFO lParam);
         [DllImport(ExternDll.User32, CharSet=CharSet.Auto)]
         [ResourceExposure(ResourceScope.None)]
         public static extern IntPtr SendMessage(HandleRef hWnd, int msg, int wParam, ref NativeMethods.SYSTEMTIME lParam);
