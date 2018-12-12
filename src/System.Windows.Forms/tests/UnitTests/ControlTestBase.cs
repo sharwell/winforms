@@ -40,7 +40,7 @@ namespace System.Windows.Forms.Tests
 
         protected JoinableTaskFactory JoinableTaskFactory { get; private set; }
 
-        protected SendInput InputSimulator => new SendInput();
+        protected SendInput InputSimulator => new SendInput(WaitForIdleAsync);
 
         public virtual Task InitializeAsync()
         {
@@ -109,7 +109,6 @@ namespace System.Windows.Forms.Tests
             TestOutputHelper.WriteLine($"Screen resolution of ({horizontalResolution}, {verticalResolution}) translates mouse to ({virtualPoint.X}, {virtualPoint.Y}).");
 
             await InputSimulator.SendAsync(window, inputSimulator => inputSimulator.Mouse.MoveMouseTo(virtualPoint.X + 1, virtualPoint.Y + 1));
-            await WaitForIdleAsync();
 
             // ⚠ The call to GetCursorPos is required for correct behavior.
             var actualPoint = new NativeMethods.POINT();

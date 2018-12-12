@@ -11,6 +11,13 @@ namespace System.Windows.Forms.Tests
 {
     public class SendInput
     {
+        private readonly Func<Task> _waitForIdleAsync;
+
+        public SendInput(Func<Task> waitForIdleAsync)
+        {
+            _waitForIdleAsync = waitForIdleAsync;
+        }
+
         internal async Task SendAsync(Form window, params object[] keys)
         {
             await SendAsync(window, inputSimulator =>
@@ -85,6 +92,8 @@ namespace System.Windows.Forms.Tests
                     SetForegroundWindow(foregroundWindow);
                 }
             }
+
+            await _waitForIdleAsync();
         }
 
         private static bool AttachThreadInput(int idAttach, int idAttachTo)
