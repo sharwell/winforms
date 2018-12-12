@@ -39,8 +39,7 @@ namespace System.Windows.Forms.Tests
                 Assert.Equal(new DateTime(2018, 12, 1), control.GetDisplayRange(visible: true).Start);
 
                 // Find the position of the 'Next' button
-                var gridInfo = GetCalendarGridInfo(control);
-                var rect = Rectangle.FromLTRB(gridInfo.rc.left, gridInfo.rc.top, gridInfo.rc.right, gridInfo.rc.bottom);
+                var rect = GetCalendarGridRect(control, MCGIP_NEXT);
 
                 // Move the mouse to the center of the 'Next' button
                 var centerOfRect = new Point(rect.Left, rect.Top) + new Size(rect.Width / 2, rect.Height / 2);
@@ -58,6 +57,38 @@ namespace System.Windows.Forms.Tests
 
                 // Verify that the next month is selected
                 Assert.Equal(new DateTime(2019, 1, 1), control.GetDisplayRange(visible: true).Start);
+            });
+        }
+
+        [WinFormsFact]
+        public void ClickToPreviousMonth()
+        {
+            RunMonthCalendarTest(async (window, control) =>
+            {
+                control.TodayDate = new DateTime(2018, 12, 8);
+                control.SetDate(new DateTime(2018, 12, 8));
+
+                Assert.Equal(new DateTime(2018, 12, 1), control.GetDisplayRange(visible: true).Start);
+
+                // Find the position of the 'Previous' button
+                var rect = GetCalendarGridRect(control, MCGIP_PREV);
+
+                // Move the mouse to the center of the 'Previous' button
+                var centerOfRect = new Point(rect.Left, rect.Top) + new Size(rect.Width / 2, rect.Height / 2);
+                var centerOnScreen = control.PointToScreen(centerOfRect);
+                await MoveMouseAsync(window, centerOnScreen);
+
+                TaskCompletionSource<VoidResult> dateChanged = new TaskCompletionSource<VoidResult>(TaskCreationOptions.RunContinuationsAsynchronously);
+                control.DateChanged += (sender, e) => dateChanged.TrySetResult(default);
+
+                await InputSimulator.SendAsync(
+                    window,
+                    inputSimulator => inputSimulator.Mouse.LeftButtonClick());
+
+                await dateChanged.Task;
+
+                // Verify that the previous month is selected
+                Assert.Equal(new DateTime(2018, 11, 1), control.GetDisplayRange(visible: true).Start);
             });
         }
 
@@ -92,15 +123,16 @@ namespace System.Windows.Forms.Tests
             Assert.Equal(point, new Point(actualPoint.x, actualPoint.y));
         }
 
-        private static MCGRIDINFO GetCalendarGridInfo(MonthCalendar control)
+        private static Rectangle GetCalendarGridRect(MonthCalendar control, uint part)
         {
             MCGRIDINFO result = default;
             result.cbSize = Marshal.SizeOf<MCGRIDINFO>();
-            result.dwPart = MCGIP_NEXT;
+            result.dwPart = part;
             result.dwFlags = MCGIF_RECT;
 
             Assert.NotEqual(IntPtr.Zero, SendMessage(new HandleRef(control, control.Handle), MCM_GETCALENDARGRIDINFO, 0, ref result));
-            return result;
+            var rect = Rectangle.FromLTRB(result.rc.left, result.rc.top, result.rc.right, result.rc.bottom);
+            return rect;
         }
 
         private const int MCM_FIRST = 0x1000;
