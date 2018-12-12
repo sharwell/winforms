@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Drawing;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -80,6 +81,7 @@ namespace System.Windows.Forms.Tests
         {
             var idleCompletionSource = new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
             Application.Idle += HandleApplicationIdle;
+            Application.LeaveThreadModal += HandleApplicationIdle;
 
             try
             {
@@ -87,17 +89,29 @@ namespace System.Windows.Forms.Tests
                 await JoinableTaskFactory.SwitchToMainThreadAsync();
                 await Task.Yield();
 
-                await idleCompletionSource.Task;
+                if (Application.OpenForms.Count > 0)
+                {
+                    await idleCompletionSource.Task;
+                }
             }
             finally
             {
                 Application.Idle -= HandleApplicationIdle;
+                Application.LeaveThreadModal -= HandleApplicationIdle;
             }
 
             void HandleApplicationIdle(object sender, EventArgs e)
             {
                 idleCompletionSource.TrySetResult(default);
             }
+        }
+
+        protected async Task MoveMouseToControlAsync(Control control)
+        {
+            var rect = control.DisplayRectangle;
+            var centerOfRect = new Point(rect.Left, rect.Top) + new Size(rect.Width / 2, rect.Height / 2);
+            var centerOnScreen = control.PointToScreen(centerOfRect);
+            await MoveMouseAsync(control.FindForm(), centerOnScreen);
         }
 
         protected async Task MoveMouseAsync(Form window, Point point)
