@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Drawing;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
@@ -96,6 +98,83 @@ namespace System.Windows.Forms.Tests
             {
                 idleCompletionSource.TrySetResult(default);
             }
+        }
+
+        protected async Task MoveMouseAsync(Form window, Point point)
+        {
+            TestOutputHelper.WriteLine($"Moving mouse to ({point.X}, {point.Y}).");
+            int horizontalResolution = UnsafeNativeMethods.GetSystemMetrics(NativeMethods.SM_CXSCREEN);
+            int verticalResolution = UnsafeNativeMethods.GetSystemMetrics(NativeMethods.SM_CYSCREEN);
+            var virtualPoint = new Point((int)Math.Round((65535.0 / horizontalResolution) * point.X), (int)Math.Round((65535.0 / verticalResolution) * point.Y));
+            TestOutputHelper.WriteLine($"Screen resolution of ({horizontalResolution}, {verticalResolution}) translates mouse to ({virtualPoint.X}, {virtualPoint.Y}).");
+
+            await InputSimulator.SendAsync(window, inputSimulator => inputSimulator.Mouse.MoveMouseTo(virtualPoint.X + 1, virtualPoint.Y + 1));
+            await WaitForIdleAsync();
+
+            // ⚠ The call to GetCursorPos is required for correct behavior.
+            var actualPoint = new NativeMethods.POINT();
+            if (!UnsafeNativeMethods.GetCursorPos(actualPoint))
+            {
+                throw Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error());
+            }
+
+            if (actualPoint.x != point.X || actualPoint.y != point.Y)
+            {
+                // Wait and try again
+                await Task.Delay(15);
+                if (!UnsafeNativeMethods.GetCursorPos(actualPoint))
+                {
+                    throw Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error());
+                }
+            }
+
+            Assert.Equal(point, new Point(actualPoint.x, actualPoint.y));
+        }
+
+        protected void RunSingleControlTest<T>(Func<Form, T, Task> testDriverAsync)
+            where T : Control, new()
+        {
+            RunForm(
+                () =>
+                {
+                    var form = new Form();
+                    form.TopMost = true;
+
+                    var control = new T();
+                    form.Controls.Add(control);
+
+                    return (form, control);
+                },
+                testDriverAsync);
+        }
+
+        protected void RunForm<T>(Func<(Form dialog, T control)> createDialog, Func<Form, T, Task> testDriverAsync)
+            where T : Control
+        {
+            Form dialog = null;
+            T control = null;
+
+            TaskCompletionSource<VoidResult> gate = new TaskCompletionSource<VoidResult>(TaskCreationOptions.RunContinuationsAsynchronously);
+            JoinableTask test = JoinableTaskFactory.RunAsync(async () =>
+            {
+                await gate.Task;
+                await JoinableTaskFactory.SwitchToMainThreadAsync();
+                await WaitForIdleAsync();
+                try
+                {
+                    await testDriverAsync(dialog, control);
+                }
+                finally
+                {
+                    dialog.Close();
+                }
+            });
+
+            (dialog, control) = createDialog();
+            dialog.Activated += (sender, e) => gate.TrySetResult(default);
+            dialog.ShowDialog();
+
+            test.Join();
         }
     }
 }
