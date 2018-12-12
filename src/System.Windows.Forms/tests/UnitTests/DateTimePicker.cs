@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Threading.Tasks;
@@ -30,20 +28,13 @@ namespace System.Windows.Forms.Tests
             Assert.Equal(DateTimePickerFormat.Long, dtp.Format);
         }
 
-        public static IEnumerable<object[]> Iterations
-            => Enumerable.Range(0, 1000).Select(x => new object[] { x });
-
-        [WinFormsTheory]
-        [MemberData(nameof(Iterations))]
-        public void ClickToNextMonth(int iteration)
+        [WinFormsFact]
+        public void ClickToNextMonth()
         {
-            Assert.True(iteration >= 0);
             RunMonthCalendarTest(async (window, control) =>
             {
                 control.TodayDate = new DateTime(2018, 12, 8);
                 control.SetDate(new DateTime(2018, 12, 8));
-
-                await WaitForIdleAsync();
 
                 Assert.Equal(new DateTime(2018, 12, 1), control.GetDisplayRange(visible: true).Start);
 
@@ -51,6 +42,7 @@ namespace System.Windows.Forms.Tests
                 var gridInfo = GetCalendarGridInfo(control);
                 var rect = Rectangle.FromLTRB(gridInfo.rc.left, gridInfo.rc.top, gridInfo.rc.right, gridInfo.rc.bottom);
 
+                // Move the mouse to the center of the 'Next' button
                 var centerOfRect = new Point(rect.Left, rect.Top) + new Size(rect.Width / 2, rect.Height / 2);
                 var centerOnScreen = control.PointToScreen(centerOfRect);
                 await MoveMouseAsync(window, centerOnScreen);
@@ -64,6 +56,7 @@ namespace System.Windows.Forms.Tests
 
                 await dateChanged.Task;
 
+                // Verify that the next month is selected
                 Assert.Equal(new DateTime(2019, 1, 1), control.GetDisplayRange(visible: true).Start);
             });
         }
@@ -105,15 +98,8 @@ namespace System.Windows.Forms.Tests
             result.cbSize = Marshal.SizeOf<MCGRIDINFO>();
             result.dwPart = MCGIP_NEXT;
             result.dwFlags = MCGIF_RECT;
-            var partOffset = Marshal.OffsetOf<MCGRIDINFO>(nameof(MCGRIDINFO.dwPart));
-            var flagsOffset = Marshal.OffsetOf<MCGRIDINFO>(nameof(MCGRIDINFO.dwFlags));
 
-            IntPtr rc = SendMessage(new HandleRef(control, control.HandleInternal), MCM_GETCALENDARGRIDINFO, 0, ref result);
-            if (rc != IntPtr.Zero)
-            {
-                return result;
-            }
-
+            Assert.NotEqual(IntPtr.Zero, SendMessage(new HandleRef(control, control.Handle), MCM_GETCALENDARGRIDINFO, 0, ref result));
             return result;
         }
 
@@ -241,16 +227,6 @@ namespace System.Windows.Forms.Tests
                     control.Location = new Point(5, 5);
                     control.Name = "MyControl";
                     form.Controls.Add(control);
-
-                    var button = new Button();
-                    button.Location = new Point(5, 150);
-                    form.Controls.Add(button);
-                    button.Click += delegate
-                    {
-                        var gridInfo = GetCalendarGridInfo(control);
-                        var info = Rectangle.FromLTRB(gridInfo.rc.left, gridInfo.rc.top, gridInfo.rc.right, gridInfo.rc.bottom);
-                        Assert.Equal("", info.ToString());
-                    };
 
                     return (form, control);
                 },
