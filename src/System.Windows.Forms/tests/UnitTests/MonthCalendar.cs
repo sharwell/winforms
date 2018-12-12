@@ -5,7 +5,6 @@
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.Threading;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -28,9 +27,9 @@ namespace System.Windows.Forms.Tests
         }
 
         [WinFormsFact]
-        public void ClickToNextMonth()
+        public async Task ClickToNextMonthAsync()
         {
-            RunMonthCalendarTest(async (window, control) =>
+            await RunMonthCalendarTestAsync(async (window, control) =>
             {
                 control.TodayDate = new DateTime(2018, 12, 8);
                 control.SetDate(new DateTime(2018, 12, 8));
@@ -60,9 +59,9 @@ namespace System.Windows.Forms.Tests
         }
 
         [WinFormsFact]
-        public void ClickToPreviousMonth()
+        public async Task ClickToPreviousMonthAsync()
         {
-            RunMonthCalendarTest(async (window, control) =>
+            await RunMonthCalendarTestAsync(async (window, control) =>
             {
                 control.TodayDate = new DateTime(2018, 12, 8);
                 control.SetDate(new DateTime(2018, 12, 8));
@@ -103,9 +102,9 @@ namespace System.Windows.Forms.Tests
             return rect;
         }
 
-        private void RunMonthCalendarTest(Func<Form, MonthCalendar, Task> testDriverAsync)
+        private async Task RunMonthCalendarTestAsync(Func<Form, MonthCalendar, Task> testDriverAsync)
         {
-            RunSingleControlTest(testDriverAsync);
+            await RunSingleControlTestAsync(testDriverAsync);
         }
     }
 }

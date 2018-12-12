@@ -131,10 +131,10 @@ namespace System.Windows.Forms.Tests
             Assert.Equal(point, new Point(actualPoint.x, actualPoint.y));
         }
 
-        protected void RunSingleControlTest<T>(Func<Form, T, Task> testDriverAsync)
+        protected async Task RunSingleControlTestAsync<T>(Func<Form, T, Task> testDriverAsync)
             where T : Control, new()
         {
-            RunForm(
+            await RunFormAsync(
                 () =>
                 {
                     var form = new Form();
@@ -148,7 +148,7 @@ namespace System.Windows.Forms.Tests
                 testDriverAsync);
         }
 
-        protected void RunForm<T>(Func<(Form dialog, T control)> createDialog, Func<Form, T, Task> testDriverAsync)
+        protected async Task RunFormAsync<T>(Func<(Form dialog, T control)> createDialog, Func<Form, T, Task> testDriverAsync)
             where T : Control
         {
             Form dialog = null;
@@ -170,11 +170,12 @@ namespace System.Windows.Forms.Tests
                 }
             });
 
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
             (dialog, control) = createDialog();
             dialog.Activated += (sender, e) => gate.TrySetResult(default);
             dialog.ShowDialog();
 
-            test.Join();
+            await test.JoinAsync();
         }
     }
 }
