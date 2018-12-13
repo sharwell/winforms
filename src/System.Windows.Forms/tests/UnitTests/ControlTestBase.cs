@@ -161,11 +161,34 @@ namespace System.Windows.Forms.Tests
                 testDriverAsync);
         }
 
+        protected async Task RunControlPairTestAsync<T>(Func<Form, (T control1, T control2), Task> testDriverAsync)
+            where T : Control, new()
+        {
+            await RunFormAsync(
+                () =>
+                {
+                    var form = new Form();
+                    form.TopMost = true;
+
+                    var control1 = new T();
+                    var control2 = new T();
+
+                    var tableLayout = new TableLayoutPanel();
+                    tableLayout.ColumnCount = 2;
+                    tableLayout.RowCount = 1;
+                    tableLayout.Controls.Add(control1, 0, 0);
+                    tableLayout.Controls.Add(control2, 1, 0);
+                    form.Controls.Add(tableLayout);
+
+                    return (form, (control1, control2));
+                },
+                testDriverAsync);
+        }
+
         protected async Task RunFormAsync<T>(Func<(Form dialog, T control)> createDialog, Func<Form, T, Task> testDriverAsync)
-            where T : Control
         {
             Form dialog = null;
-            T control = null;
+            T control = default;
 
             TaskCompletionSource<VoidResult> gate = new TaskCompletionSource<VoidResult>(TaskCreationOptions.RunContinuationsAsynchronously);
             JoinableTask test = JoinableTaskFactory.RunAsync(async () =>

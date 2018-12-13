@@ -215,5 +215,78 @@ namespace System.Windows.Forms.Tests
                 Assert.Equal(originalFormSize.Height - originalButtonPosition.Bottom, form.DisplayRectangle.Height - control.DisplayRectangle.Bottom);
             });
         }
+
+        [WinFormsFact]
+        public async Task DragAfterMouseDownAsync()
+        {
+            await RunControlPairTestAsync<Button>(async (form, controls) =>
+            {
+                (Button control1, Button control2) = controls;
+
+                int control1ClickCount = 0;
+                int control2ClickCount = 0;
+                control1.Click += (sender, e) => control1ClickCount++;
+                control2.Click += (sender, e) => control2ClickCount++;
+
+                // Verify mouse press without moving causes a button click
+                await MoveMouseToControlAsync(control1);
+                await InputSimulator.SendAsync(form, inputSimulator => inputSimulator.Mouse.LeftButtonDown().LeftButtonUp());
+                Assert.Equal(1, control1ClickCount);
+                Assert.Equal(0, control2ClickCount);
+
+                // Verify mouse press without moving causes a button click
+                await MoveMouseToControlAsync(control2);
+                await InputSimulator.SendAsync(form, inputSimulator => inputSimulator.Mouse.LeftButtonDown().LeftButtonUp());
+                Assert.Equal(1, control1ClickCount);
+                Assert.Equal(1, control2ClickCount);
+
+                // Verify that mouse press and then drag off the control does not cause a button click of either button
+                await MoveMouseToControlAsync(control1);
+
+                Rectangle rect = control2.DisplayRectangle;
+                Point centerOfRect = new Point(rect.Left, rect.Top) + new Size(rect.Width / 2, rect.Height / 2);
+                Point centerOnScreen = control2.PointToScreen(centerOfRect);
+                int horizontalResolution = UnsafeNativeMethods.GetSystemMetrics(NativeMethods.SM_CXSCREEN);
+                int verticalResolution = UnsafeNativeMethods.GetSystemMetrics(NativeMethods.SM_CYSCREEN);
+                var virtualPoint = new Point((int)Math.Round((65535.0 / horizontalResolution) * centerOnScreen.X), (int)Math.Round((65535.0 / verticalResolution) * centerOnScreen.Y));
+
+                await InputSimulator.SendAsync(
+                    form,
+                    inputSimulator => inputSimulator.Mouse
+                        .LeftButtonDown()
+                        .MoveMouseTo(virtualPoint.X + 1, virtualPoint.Y + 1)
+                        .LeftButtonUp());
+
+                ////Assert.False(control1.MouseIsOver);
+                ////Assert.True(control2.MouseIsOver);
+
+                Assert.Equal(1, control1ClickCount);
+                Assert.Equal(1, control2ClickCount);
+
+                // Verify that mouse press and then drag off the control and back causes a button click
+                await MoveMouseToControlAsync(control1);
+
+                Rectangle rect1 = control1.DisplayRectangle;
+                Point centerOfRect1 = new Point(rect1.Left, rect1.Top) + new Size(rect1.Width / 2, rect1.Height / 2);
+                Point centerOnScreen1 = control1.PointToScreen(centerOfRect1);
+                int horizontalResolution1 = UnsafeNativeMethods.GetSystemMetrics(NativeMethods.SM_CXSCREEN);
+                int verticalResolution1 = UnsafeNativeMethods.GetSystemMetrics(NativeMethods.SM_CYSCREEN);
+                var virtualPoint1 = new Point((int)Math.Round((65535.0 / horizontalResolution1) * centerOnScreen1.X), (int)Math.Round((65535.0 / verticalResolution1) * centerOnScreen1.Y));
+
+                await InputSimulator.SendAsync(
+                    form,
+                    inputSimulator => inputSimulator.Mouse
+                        .LeftButtonDown()
+                        .MoveMouseTo(virtualPoint.X + 1, virtualPoint.Y + 1)
+                        .MoveMouseTo(virtualPoint1.X + 1, virtualPoint1.Y + 1)
+                        .LeftButtonUp());
+
+                ////Assert.False(control1.MouseIsOver);
+                ////Assert.True(control2.MouseIsOver);
+
+                Assert.Equal(2, control1ClickCount);
+                Assert.Equal(1, control2ClickCount);
+            });
+        }
     }
 }
